@@ -15,7 +15,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from rest_framework.routers import DefaultRouter
 
-urlpatterns = [
+from api.views import SongViewSet
+
+router = DefaultRouter(trailing_slash=False)
+router.register("songs", SongViewSet)
+urlpatterns = router.urls + [
     path("admin/", admin.site.urls),
 ]
