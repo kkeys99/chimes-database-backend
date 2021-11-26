@@ -1,12 +1,18 @@
 services:
   db:
     image: postgres
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
   api:
     build: .
+    restart: always
     command: >
-      sh -c "python manage.py migrate &&
+      sh -c "python wait_for_postgres.py &&
+             python manage.py migrate &&
              python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/code
