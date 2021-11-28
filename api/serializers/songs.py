@@ -1,5 +1,3 @@
-from typing import List
-
 from rest_framework import serializers
 
 from api.models import Song
@@ -8,12 +6,12 @@ from api.utils import StringListField
 
 class SongSerializer(serializers.ModelSerializer):
     sheets = StringListField(allow_empty=False)
-    composers = StringListField(allow_empty=False, required=False, allow_null=True)
-    arrangers = StringListField(allow_empty=False, required=False, allow_null=True)
-    genres = StringListField(allow_empty=False, required=False, allow_null=True)
-    keys = StringListField(allow_empty=False, required=False, allow_null=True)
-    time = StringListField(allow_empty=False, required=False, allow_null=True)
-    tempos = StringListField(allow_empty=False, required=False, allow_null=True)
+    composers = StringListField(required=False)
+    arrangers = StringListField(required=False)
+    genres = StringListField(required=False)
+    keys = StringListField(required=False)
+    time = StringListField(required=False)
+    tempos = StringListField(required=False)
     note = serializers.CharField(required=False, allow_null=True)
 
     class Meta:
@@ -34,12 +32,10 @@ class SongSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "dateAdded"]
 
     def create(self, validated_data):
-        song = Song.objects.create(
-            name=validated_data["name"], note=validated_data.get("note")
-        )
+        song = Song.objects.create()
 
-        # handle the tags
-        for tagType in [
+        editableFields = [
+            "name",
             "sheets",
             "composers",
             "arrangers",
@@ -47,11 +43,13 @@ class SongSerializer(serializers.ModelSerializer):
             "keys",
             "time",
             "tempos",
-        ]:
-            newTags: List[str] = validated_data.get(tagType)
+            "note",
+        ]
 
-            # if the user provided a type of tag, we need to associate it with the song
-            if newTags:
-                setattr(song, tagType, newTags)
+        for field in editableFields:
+            newVal = validated_data.get(field)
+            if newVal:
+                setattr(song, field, newVal)
 
+        song.save()
         return song
